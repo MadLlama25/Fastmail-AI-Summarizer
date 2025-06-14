@@ -1,0 +1,27 @@
+{
+  "name": "@fastmail-summarizer/chrome-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for Fastmail Email Summarizer (Manifest V3)",
+  "main": "manifest.json",
+  "scripts": {
+    "build": "echo 'Building Chrome extension'",
+    "dev": "echo 'Chrome extension development mode'",
+    "lint": "eslint *.js",
+    "test": "echo 'No tests configured yet'",
+    "clean": "echo 'No cleanup needed'",
+    "package": "zip -r ../chrome-extension.zip * -x '*.DS_Store' 'node_modules/*' 'package*.json'"
+  },
+  "keywords": [
+    "chrome",
+    "extension",
+    "manifest-v3",
+    "fastmail",
+    "email",
+    "summarizer"
+  ],
+  "author": "Jeremy Gill",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@fastmail-summarizer/shared-core": "1.0.0"
+  }
+}

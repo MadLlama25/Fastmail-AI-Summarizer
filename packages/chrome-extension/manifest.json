@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Fastmail Email Summarizer",
+  "version": "1.0",
+  "description": "Summarize Fastmail emails using Claude AI",
+  "author": "Jeremy Gill",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.fastmail.com/*",
+    "https://api.anthropic.com/*"
+  ],
+  "background": {
+    "service_worker": "fastmail-background-service.js"
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup-html.html",
+    "default_title": "📧 Email Summarizer",
+    "default_icon": {
+      "16": "icon-16.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png"
+    }
+  },
+  "_oauth2_commented_out_for_testing": {
+    "_note": "OAuth2 configuration commented out for direct API token testing",
+    "client_id": "YOUR_FASTMAIL_CLIENT_ID",
+    "scopes": ["https://www.fastmail.com/dev/protocol"]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

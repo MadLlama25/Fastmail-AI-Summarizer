@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Summary - Fastmail AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .meta-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+
+        .meta-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .meta-value {
+            color: #7f8c8d;
+        }
+
+        .summary-section {
+            margin-bottom: 30px;
+        }
+
+        .summary-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .summary-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #34495e;
+            background: #fdfdfd;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #ecf0f1;
+        }
+
+        .summary-content p {
+            margin-bottom: 15px;
+        }
+
+        .summary-content ul, .summary-content ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .summary-content li {
+            margin-bottom: 8px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #ecf0f1;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                border-radius: 8px;
+            }
+            
+            .header, .content {
+                padding: 20px;
+            }
+            
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Email Summary</h1>
+            <p>AI-powered insights from your recent Fastmail messages</p>
+        </div>
+
+        <div class="content">
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading your email summary...</p>
+            </div>
+
+            <div id="error-message" class="error" style="display: none;">
+                <h3>⚠️ Error Loading Summary</h3>
+                <p id="error-text"></p>
+            </div>
+
+            <div id="summary-content" style="display: none;">
+                <div class="meta-info">
+                    <h3>📊 Summary Details</h3>
+                    <div class="meta-row">
+                        <span class="meta-label">Generated:</span>
+                        <span class="meta-value" id="generated-time"></span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Emails Analyzed:</span>
+                        <span class="meta-value" id="email-count"></span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">AI Model:</span>
+                        <span class="meta-value">Claude 3.5 Haiku</span>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h2>🤖 AI Summary</h2>
+                    <div class="summary-content" id="summary-text"></div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="window.print()">🖨️ Print Summary</button>
+                    <button class="btn btn-secondary" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+                    <button class="btn btn-secondary" onclick="window.close()">❌ Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadSummary() {
+            try {
+                // Get summary data from Chrome storage
+                const result = await chrome.storage.local.get(['latestSummary']);
+                
+                if (!result.latestSummary) {
+                    throw new Error('No summary data found. Please generate a summary from the extension popup first.');
+                }
+
+                const summaryData = result.latestSummary;
+                displaySummary(summaryData);
+                
+                // Clear the stored summary for security
+                await chrome.storage.local.remove(['latestSummary']);
+                
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function displaySummary(summaryData) {
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+            
+            // Show summary content
+            document.getElementById('summary-content').style.display = 'block';
+            
+            // Populate data
+            document.getElementById('generated-time').textContent = new Date(summaryData.timestamp).toLocaleString();
+            document.getElementById('email-count').textContent = summaryData.emailCount || 'Unknown';
+            
+            // Safely display summary text with XSS protection
+            const summaryElement = document.getElementById('summary-text');
+            summaryElement.textContent = summaryData.summary || 'No summary available.';
+        }
+                
+            } catch (error) {
+                console.error('Error loading summary:', error);
+                showError(error.message);
+            }
+        }
+
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('error-text').textContent = message;
+        }
+
+        async function copyToClipboard() {
+            try {
+                const summaryText = document.getElementById('summary-text').textContent;
+                await navigator.clipboard.writeText(summaryText);
+                
+                // Show temporary feedback
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.style.background = '#27ae60';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                }, 2000);
+            } catch (error) {
+                alert('Failed to copy to clipboard: ' + error.message);
+            }
+        }
+
+        // Load summary when page loads
+        document.addEventListener('DOMContentLoaded', loadSummary);
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "fastmail-email-summarizer",
+  "version": "1.0.0",
+  "description": "Cross-browser extension that connects to Fastmail via JMAP API and uses Claude AI to summarize recent emails",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces",
+    "clean": "npm run clean --workspaces"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/fastmail-email-summarizer.git"
+  },
+  "keywords": [
+    "fastmail",
+    "email",
+    "summarizer",
+    "claude",
+    "jmap",
+    "browser-extension",
+    "chrome",
+    "firefox"
+  ],
+  "author": "Jeremy Gill",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

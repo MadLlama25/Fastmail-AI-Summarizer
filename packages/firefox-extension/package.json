@@ -1,0 +1,27 @@
+{
+  "name": "@fastmail-summarizer/firefox-extension",
+  "version": "1.0.0",
+  "description": "Firefox extension for Fastmail Email Summarizer (Manifest V2)",
+  "main": "manifest.json",
+  "scripts": {
+    "build": "echo 'Building Firefox extension'",
+    "dev": "echo 'Firefox extension development mode'",
+    "lint": "eslint *.js",
+    "test": "echo 'No tests configured yet'",
+    "clean": "echo 'No cleanup needed'",
+    "package": "zip -r ../firefox-extension.zip * -x '*.DS_Store' 'node_modules/*' 'package*.json'"
+  },
+  "keywords": [
+    "firefox",
+    "extension",
+    "manifest-v2",
+    "fastmail",
+    "email",
+    "summarizer"
+  ],
+  "author": "Jeremy Gill",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@fastmail-summarizer/shared-core": "1.0.0"
+  }
+}
