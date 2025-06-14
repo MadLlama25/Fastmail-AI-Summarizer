@@ -16,6 +16,7 @@
 
 // Import shared secure storage utilities
 importScripts('secure-storage.js');
+/* global encodeToken, decodeToken, secureStorage */
 
 class FastmailJMAP {
   constructor() {
@@ -308,7 +309,7 @@ class ClaudeAPI {
 
   async summarizeEmails(emails) {
     try {
-      const emailTexts = emails.map((email, index) => {
+      const emailTexts = emails.map((email, _index) => {
         const fromEmail = email.from && email.from[0] ? email.from[0].email : 'Unknown sender';
         const isPriority = email.keywords && ['$flagged', '$important', 'important', 'urgent'].some(keyword => email.keywords[keyword] === true);
         const priorityFlag = isPriority ? '[PRIORITY] ' : '';
@@ -316,7 +317,7 @@ class ClaudeAPI {
       }).join('\n');
 
       const requestBody = {
-        model: 'claude-3-5-haiku-latest',
+        model: 'claude-3-5-haiku-20241022',
         max_tokens: 5000,
         messages: [{
           role: 'user',
@@ -367,6 +368,37 @@ ${emailTexts}`
       throw error;
     }
   }
+
+  // Secure HTML sanitization for summary display
+  sanitizeHtml(html) {
+    if (!html || typeof html !== 'string') {
+      return '';
+    }
+    
+    // Escape HTML entities
+    const escapeMap = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;',
+      '/': '&#x2F;'
+    };
+    
+    let escaped = html.replace(/[&<>"'/]/g, (s) => escapeMap[s]);
+    
+    // Apply safe formatting for common markdown-style patterns
+    escaped = escaped
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')              // Italic
+      .replace(/\n\n/g, '</p><p>')                       // Paragraphs
+      .replace(/\n/g, '<br>')                            // Line breaks
+      .replace(/^(.*)$/gm, '<p>$1</p>')                  // Wrap in paragraphs
+      .replace(/<p><\/p>/g, '')                          // Remove empty paragraphs
+      .replace(/<p><br><\/p>/g, '<br>');                 // Fix line break paragraphs
+    
+    return escaped;
+  }
 }
 
 // Firefox extension message handlers - using browser.runtime instead of chrome.runtime
@@ -374,13 +406,14 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   (async () => {
     try {
       switch (request.action) {
-        case 'authenticate':
+        case 'authenticate': {
           const jmap = new FastmailJMAP();
           const success = await jmap.authenticate();
           sendResponse({ success });
           break;
+        }
 
-        case 'setApiToken':
+        case 'setApiToken': {
           // Receive already encrypted token from UI
           const { encryptedApiToken } = request;
           if (!encryptedApiToken) {
@@ -396,8 +429,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
           await browser.storage.local.set({ isAuthenticated: true });
           sendResponse({ success: true });
           break;
+        }
 
-        case 'getMailboxes':
+        case 'getMailboxes': {
           const mailboxFastmail = new FastmailJMAP();
           const mailboxAuthSuccess = await mailboxFastmail.authenticate();
           if (!mailboxAuthSuccess) {
@@ -406,8 +440,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const mailboxes = await mailboxFastmail.getMailboxes();
           sendResponse({ success: true, mailboxes });
           break;
+        }
 
-        case 'summarizeEmails':
+        case 'summarizeEmails': {
           const { encryptedClaudeApiKey, emailCount, mailboxIds } = request;
           if (!encryptedClaudeApiKey) {
             throw new Error('No encrypted Claude API key provided');
@@ -447,6 +482,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
           
           sendResponse({ success: true, summary });
           break;
+        }
 
         default:
           sendResponse({ error: 'Unknown action' });

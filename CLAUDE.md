@@ -4,22 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a cross-browser extension that connects to Fastmail via JMAP API and uses Claude AI to summarize recent emails. Uses a **Monorepo with Shared Core** architecture containing:
+This is a cross-browser extension that connects to Fastmail via JMAP API and uses Claude AI to summarize recent emails. Uses a **Dual Extension** architecture containing:
 
-- **`packages/shared-core/`**: Common functionality (encryption, API clients, utilities)
-- **`packages/chrome-extension/`**: Chrome Manifest V3 implementation
-- **`packages/firefox-extension/`**: Firefox Manifest V2 implementation
+- **`packages/chrome-extension/`**: Chrome Manifest V3 implementation with full functionality
+- **`packages/firefox-extension/`**: Firefox Manifest V2 implementation with full functionality
 
-Both browser extensions share identical functionality through the shared core, differing only in browser-specific APIs (`chrome.*` vs `browser.*`).
+Both browser extensions contain identical core functionality, differing only in browser-specific APIs (`chrome.*` vs `browser.*`) and manifest requirements.
 
 ## Development Commands
 
-### Monorepo Development
+### Extension Development
 ```bash
 # Install dependencies for all packages
 npm install
 
-# Build all packages
+# Build all packages (basic validation only)
 npm run build
 
 # Lint all packages
@@ -59,16 +58,14 @@ cd packages/firefox-extension && npm run package
 
 ## Core Architecture
 
-### Monorepo Architecture
-- **Shared Core (`packages/shared-core/`)**: Source templates for common functionality
-  - `src/storage/`: Secure encryption utilities (SecureStorage class)
-  - `src/api/`: Fastmail JMAP and Claude API clients (templates)
-  - `src/utils/`: HTML sanitization and utility functions (templates)
+### Dual Extension Architecture
 - **Chrome Extension (`packages/chrome-extension/`)**: Manifest V3, `chrome.*` APIs, Service Worker
-  - Contains copied secure-storage.js for browser compatibility
+  - Complete implementation with secure-storage.js, popup, background service
+  - Uses Service Worker for background processing
 - **Firefox Extension (`packages/firefox-extension/`)**: Manifest V2, `browser.*` APIs, traditional background script
-  - Contains copied secure-storage.js with `browser.*` API calls
-- **Build Process**: Critical files copied to extension directories for browser compatibility
+  - Complete implementation with secure-storage.js, popup, background service
+  - Uses traditional background script (non-persistent)
+- **Code Synchronization**: Changes made to one extension should be manually ported to the other
 
 ### Security & Encryption Architecture
 - `SecureStorage` class provides AES-GCM encryption with password-derived keys
@@ -145,7 +142,7 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
 ```
 
 ### Claude API Integration Requirements
-- Uses `claude-3-5-haiku-latest` model with `anthropic-dangerous-direct-browser-access: true` header
+- Uses `claude-3-5-haiku-20241022` model with `anthropic-dangerous-direct-browser-access: true` header
 - **Priority Email Handling**: Emails marked with `[PRIORITY]` are highlighted prominently in summaries
 - Enhanced prompt instructs Claude to use **bold formatting** for priority emails and mention them first
 - Formats email data as structured text with subject, sender, date, body content
@@ -179,7 +176,7 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
 ### Testing Both Browser Versions
 1. Test Chrome version first (packages/chrome-extension/)
 2. Test Firefox version second (packages/firefox-extension/)  
-3. Verify identical functionality across both browsers via shared core
+3. Verify identical functionality across both browsers
 4. Check both DevTools consoles for browser-specific errors
 
 ### Configuration Testing Pattern
@@ -201,7 +198,7 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
 - **Multi-Folder Selection**: Checkbox event handling requires proper propagation and state management
 - **Hierarchy Building**: Parent/child relationships must handle missing parents gracefully
 - **JMAP OR Filtering**: Multiple mailbox filtering uses OR operator with conditions array
-- **Security**: Use `formatSummaryTextSecurely()` for user content display - escapes HTML then applies safe formatting
+- **Security**: Use proper HTML sanitization for user content display - escapes HTML then applies safe formatting
 - **Encryption**: Extension ID fallbacks required for both `chrome.runtime.id` and `browser.runtime.id`
 - **Permissions**: Manifest V2 vs V3 permission format differences
 - **Error Handling**: Extension gracefully handles empty mailboxes, invalid dates, and malformed data

@@ -259,8 +259,8 @@
     <script>
         async function loadSummary() {
             try {
-                // Get summary data from Chrome storage
-                const result = await chrome.storage.local.get(['latestSummary']);
+                // Get summary data from browser storage (Firefox)
+                const result = await browser.storage.local.get(['latestSummary']);
                 
                 if (!result.latestSummary) {
                     throw new Error('No summary data found. Please generate a summary from the extension popup first.');
@@ -270,7 +270,7 @@
                 displaySummary(summaryData);
                 
                 // Clear the stored summary for security
-                await chrome.storage.local.remove(['latestSummary']);
+                await browser.storage.local.remove(['latestSummary']);
                 
             } catch (error) {
                 showError(error.message);
@@ -292,7 +292,6 @@
             const summaryElement = document.getElementById('summary-text');
             summaryElement.textContent = summaryData.summary || 'No summary available.';
         }
-
 
         function showError(message) {
             document.getElementById('loading').style.display = 'none';

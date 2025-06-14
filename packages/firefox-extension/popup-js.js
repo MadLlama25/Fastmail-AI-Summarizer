@@ -1,4 +1,5 @@
 // popup.js - Frontend logic for the Firefox extension popup
+/* global encodeToken */
 // Copyright (C) 2025 Jeremy Gill
 //
 // This program is free software: you can redistribute it and/or modify

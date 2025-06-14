@@ -7,7 +7,7 @@
 
 ## Overview
 
-A cross-browser extension that connects to your Fastmail account using JMAP API tokens, fetches your recent emails, and summarizes them using Claude AI. Built with a **Monorepo with Shared Core** architecture for maximum code reuse and maintainability across Chrome and Firefox.
+A cross-browser extension that connects to your Fastmail account using JMAP API tokens, fetches your recent emails, and summarizes them using Claude AI. Built with a **dual extension** architecture with separate but functionally identical Chrome and Firefox implementations.
 
 ## Features
 
@@ -109,35 +109,32 @@ A cross-browser extension that connects to your Fastmail account using JMAP API 
 ```
 fastmail-email-summarizer/
 ├── packages/
-│   ├── shared-core/                 # Common functionality
-│   │   ├── src/
-│   │   │   ├── storage/            # Secure encryption utilities
-│   │   │   ├── api/                # Fastmail JMAP & Claude API clients
-│   │   │   ├── utils/              # HTML sanitization & utilities
-│   │   │   └── index.js            # Main exports
-│   │   └── package.json
 │   ├── chrome-extension/           # Chrome Manifest V3
 │   │   ├── manifest.json
 │   │   ├── popup-html.html
 │   │   ├── popup-js.js
-│   │   ├── secure-storage.js       # Copied from shared-core
+│   │   ├── secure-storage.js       # Chrome-specific secure storage
 │   │   ├── fastmail-background-service.js
+│   │   ├── summary.html
+│   │   ├── .eslintrc.json
 │   │   └── package.json
 │   └── firefox-extension/          # Firefox Manifest V2
 │       ├── manifest.json
 │       ├── popup-html.html
 │       ├── popup-js.js
-│       ├── secure-storage.js       # Copied from shared-core (Firefox version)
+│       ├── secure-storage.js       # Firefox-specific secure storage
 │       ├── fastmail-background-service.js
+│       ├── summary.html
+│       ├── .eslintrc.json
 │       └── package.json
 ├── package.json                    # Root workspace config
 ├── CLAUDE.md                       # Development guidance
 └── README.md                       # This file
 ```
 
-### Build Process
+### Architecture
 
-Due to browser extension security constraints, critical files are **copied** from `shared-core` to each extension directory rather than using module imports. This ensures browser compatibility while maintaining the benefits of shared source code.
+Each browser extension contains its own complete implementation of all functionality. Changes to one extension should be manually ported to the other to maintain feature parity. The extensions differ only in browser-specific APIs (`chrome.*` vs `browser.*`) and manifest requirements (V3 vs V2).
 
 ## Architecture
 
@@ -184,7 +181,7 @@ Due to browser extension security constraints, critical files are **copied** fro
 - Respects Fastmail's API rate limits and best practices
 
 ### Claude AI
-- **Model**: Claude 3.5 Haiku for fast, high-quality summaries
+- **Model**: Claude 3.5 Haiku (claude-3-5-haiku-20241022) for fast, high-quality summaries
 - **Priority Email Processing**: Automatically highlights flagged/important emails with **bold formatting**
 - **Enhanced Prompts**: Instructs AI to prioritize and emphasize important messages
 - **Token Limit**: 5000 tokens for detailed, comprehensive summaries
@@ -219,7 +216,7 @@ Due to browser extension security constraints, critical files are **copied** fro
 
 - **Chrome**: Manifest V3, Service Worker, `chrome.*` APIs (`packages/chrome-extension/`)
 - **Firefox**: Manifest V2, background script, `browser.*` APIs (`packages/firefox-extension/`)
-- **Shared Core**: Identical functionality across browsers via shared modules
+- **Cross-browser compatibility**: Identical functionality across browsers with different API calls
 
 ## Development
 
