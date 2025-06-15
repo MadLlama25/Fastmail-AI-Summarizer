@@ -99,10 +99,12 @@ cd packages/firefox-extension && npm run package
 - **Progressive Disclosure**: Settings appear only when needed, auto-close after successful auth
 - **Connection Status**: Real-time visual indicators (red/green dots) showing Fastmail connectivity
 - **Summary Display**: Animated presentation with metadata, action buttons (copy, print, text size)
-- **Enhanced Chat Interface**: Dual-mode chat system with Basic/Enhanced mode toggle
+- **Enhanced Chat Interface**: Dual-mode chat system with Basic/Enhanced mode toggle and improved formatting
   - **Basic Mode**: Chat about summarized emails using stored `currentEmailData`
   - **Enhanced Mode**: Real-time Fastmail API integration with Claude function calling
   - **Mode Toggle**: Checkbox to switch between modes, auto-enables Enhanced Mode if no summary data available
+  - **Rich Text Formatting**: Comprehensive markdown-to-HTML conversion with headers, lists, code blocks, and improved readability
+  - **Enhanced Typography**: Increased chat message font size from 11px to 13px for better readability
 - **Interactive Chat**: Chat interface below summary for asking questions about emails
 
 ## Critical Implementation Details
@@ -213,6 +215,8 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
     - Test mode switching: Verify toggle between Basic and Enhanced modes works correctly
     - Test function calling: Verify Claude can search emails, get mailboxes, and retrieve email details
     - Test error handling: Invalid searches, malformed queries, API failures
+    - Test chat formatting: Verify markdown formatting works (headers, lists, bold/italic, code blocks)
+    - Test typography: Verify improved readability with larger chat text size (13px)
 12. **IMPORTANT**: Test with fresh tokens - legacy base64 tokens will require re-entry
 
 ### Common Development Issues
@@ -231,3 +235,6 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
 - **Function Calling**: Verify Claude function definitions match FastmailJMAP method signatures
 - **Chat Mode Toggle**: Test that Enhanced Mode checkbox state is properly read and handled
 - **API Rate Limits**: Enhanced Mode may trigger more JMAP API calls - handle rate limiting gracefully
+- **Chat Formatting**: Use `formatMarkdownToHtml()` method for consistent markdown-to-HTML conversion
+- **Typography Consistency**: Ensure chat messages use 13px font size while preserving 11px for UI elements
+- **Markdown Processing**: Verify line-by-line processing for proper list and paragraph handling

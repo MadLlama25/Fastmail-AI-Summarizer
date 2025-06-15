@@ -734,8 +734,9 @@ class EmailSummarizerUI {
       messageDiv.innerHTML = `<div class="chat-loading">${message}</div>`;
     } else {
       const timestamp = new Date().toLocaleTimeString();
+      const formattedMessage = this.formatMarkdownToHtml(message);
       messageDiv.innerHTML = `
-        <div>${this.escapeHtml(message)}</div>
+        <div class="chat-message-content">${formattedMessage}</div>
         <div class="timestamp">${timestamp}</div>
       `;
     }
@@ -746,10 +747,105 @@ class EmailSummarizerUI {
     return messageDiv;
   }
 
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  formatMarkdownToHtml(text) {
+    if (!text) return '';
+    
+    // First escape HTML to prevent XSS
+    let escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    
+    // Split into lines for better processing
+    const lines = escaped.split('\n');
+    const processedLines = [];
+    let inList = false;
+    let listType = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      
+      // Headers
+      if (line.match(/^### /)) {
+        line = line.replace(/^### (.*)$/, '<h3>$1</h3>');
+      } else if (line.match(/^## /)) {
+        line = line.replace(/^## (.*)$/, '<h2>$1</h2>');
+      } else if (line.match(/^# /)) {
+        line = line.replace(/^# (.*)$/, '<h1>$1</h1>');
+      }
+      // Lists
+      else if (line.match(/^\d+\.\s+/)) {
+        if (!inList || listType !== 'ol') {
+          if (inList && listType === 'ul') {
+            processedLines.push('</ul>');
+          }
+          processedLines.push('<ol>');
+          inList = true;
+          listType = 'ol';
+        }
+        line = line.replace(/^\d+\.\s+(.*)$/, '<li>$1</li>');
+      }
+      else if (line.match(/^[-*]\s+/)) {
+        if (!inList || listType !== 'ul') {
+          if (inList && listType === 'ol') {
+            processedLines.push('</ol>');
+          }
+          processedLines.push('<ul>');
+          inList = true;
+          listType = 'ul';
+        }
+        line = line.replace(/^[-*]\s+(.*)$/, '<li>$1</li>');
+      }
+      // Blockquotes
+      else if (line.match(/^>\s*/)) {
+        line = line.replace(/^>\s*(.*)$/, '<blockquote>$1</blockquote>');
+      }
+      // End of list
+      else if (inList && line.trim() === '') {
+        processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+        inList = false;
+        listType = null;
+      }
+      
+      processedLines.push(line);
+    }
+    
+    // Close any remaining lists
+    if (inList) {
+      processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+    }
+    
+    // Join lines and apply remaining formatting
+    let result = processedLines.join('\n');
+    
+    return result
+      // Bold and italic
+      .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      
+      // Code blocks (backticks)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      
+      // Convert paragraphs - double newlines to paragraph breaks
+      .replace(/\n\n+/g, '</p><p>')
+      .replace(/^/, '<p>')
+      .replace(/$/, '</p>')
+      
+      // Single line breaks within paragraphs
+      .replace(/\n/g, '<br>')
+      
+      // Clean up empty paragraphs and fix list formatting
+      .replace(/<p><\/p>/g, '')
+      .replace(/<p><br><\/p>/g, '<br>')
+      .replace(/<p>(<[uo]l>)/g, '$1')
+      .replace(/(<\/[uo]l>)<\/p>/g, '$1')
+      .replace(/<p>(<h[1-6]>)/g, '$1')
+      .replace(/(<\/h[1-6]>)<\/p>/g, '$1')
+      .replace(/<p>(<blockquote>)/g, '$1')
+      .replace(/(<\/blockquote>)<\/p>/g, '$1');
   }
 
   async sendMessageToBackground(action, data = {}) {

@@ -21,9 +21,10 @@ A cross-browser extension that connects to your Fastmail account using JMAP API 
 - 🎨 **Modern UI** - Clean interface with animated summary display and rich text formatting
 - 📋 **Action Buttons** - Copy to clipboard, print, and text size adjustment
 - 🔄 **Real-time Status** - Visual connection indicators and smart error handling
-- 💬 **Interactive Chat** - Ask questions about your emails with two powerful modes:
+- 💬 **Interactive Chat** - Ask questions about your emails with two powerful modes and enhanced formatting:
   - **Basic Mode**: Chat about your recent summarized emails
   - **Enhanced Mode**: Search and interact with your entire Fastmail mailbox in real-time
+  - **Rich Formatting**: Chat responses support headers, lists, bold/italic text, code blocks, and improved readability
 
 ## Prerequisites
 
@@ -112,6 +113,7 @@ A cross-browser extension that connects to your Fastmail account using JMAP API 
 - **Interactive chat interface** with Basic and Enhanced modes:
   - **Basic Mode**: Ask questions about summarized emails
   - **Enhanced Mode**: Real-time search across entire Fastmail account
+  - **Enhanced Formatting**: Supports markdown-style headers, lists, bold/italic text, code blocks, and larger readable text
 
 ## Project Structure
 
