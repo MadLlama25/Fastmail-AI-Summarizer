@@ -21,6 +21,9 @@ A cross-browser extension that connects to your Fastmail account using JMAP API 
 - 🎨 **Modern UI** - Clean interface with animated summary display and rich text formatting
 - 📋 **Action Buttons** - Copy to clipboard, print, and text size adjustment
 - 🔄 **Real-time Status** - Visual connection indicators and smart error handling
+- 💬 **Interactive Chat** - Ask questions about your emails with two powerful modes:
+  - **Basic Mode**: Chat about your recent summarized emails
+  - **Enhanced Mode**: Search and interact with your entire Fastmail mailbox in real-time
 
 ## Prerequisites
 
@@ -81,6 +84,9 @@ A cross-browser extension that connects to your Fastmail account using JMAP API 
 2. Click the large "📝 Summarize Recent Emails" button
 3. View the AI-generated summary with professional formatting and metadata
 4. **Priority emails** (flagged/important) will appear first with **bold formatting**
+5. **Ask questions** about your emails using the interactive chat feature below the summary:
+   - **Basic Mode** (default): Chat about the emails in your current summary
+   - **Enhanced Mode** (toggle on): Search your entire mailbox - ask questions like "Find emails from john@example.com this week" or "Show me all flagged emails"
 
 ## User Interface
 
@@ -103,6 +109,9 @@ A cross-browser extension that connects to your Fastmail account using JMAP API 
 - **Rich formatting** with bold, italics, bullet points, numbered lists (securely sanitized)
 - **Comprehensive metadata** showing generation time, email count, AI model, and selected folder
 - **Action buttons** for copy to clipboard, print, and text size adjustment
+- **Interactive chat interface** with Basic and Enhanced modes:
+  - **Basic Mode**: Ask questions about summarized emails
+  - **Enhanced Mode**: Real-time search across entire Fastmail account
 
 ## Project Structure
 
@@ -160,6 +169,9 @@ Each browser extension contains its own complete implementation of all functiona
 6. `getEmailBody()` extracts text/HTML content from emails
 7. Content formatted and sent to Claude API with priority markers for enhanced summarization
 8. Summary displayed with priority email highlighting and enhanced formatting
+9. **Interactive chat** enables follow-up questions with two modes:
+   - **Basic Mode**: Uses `ClaudeAPI.chatWithEmails()` for summary-based chat
+   - **Enhanced Mode**: Uses `ClaudeAPI.chatWithFastmailAPI()` with function calling for real-time email search
 
 ## Security & Privacy
 
@@ -187,6 +199,54 @@ Each browser extension contains its own complete implementation of all functiona
 - **Token Limit**: 5000 tokens for detailed, comprehensive summaries
 - **Processing**: Handles both text and HTML email content
 - **Formatting**: Supports rich text output with lists, emphasis, and structure
+- **Function Calling**: Enhanced Mode uses Claude's function calling to interact with Fastmail API:
+  - `search_emails`: Search by sender, subject, date range, keywords, or folders
+  - `get_mailboxes`: List all available mailboxes and folders
+  - `get_email_details`: Retrieve full details of specific emails by ID
+
+## Enhanced Chat Features
+
+### Chat Modes
+
+**Basic Mode (Default)**
+- Chat about emails from your recent summary
+- Fast responses using already-fetched email data
+- Perfect for asking questions about summarized content
+- Example: "What are the most urgent emails?" or "Summarize the key topics"
+
+**Enhanced Mode (Toggle On)**
+- Real-time search across your entire Fastmail account
+- Claude AI can search, filter, and analyze any emails in your mailbox
+- Uses Claude's function calling to interact with Fastmail JMAP API
+- More powerful but requires additional API calls
+
+### Enhanced Mode Examples
+
+**Email Search Queries:**
+- "Find all emails from john@example.com in the last week"
+- "Show me flagged emails in my Work folder"
+- "What emails did I receive yesterday about the project?"
+- "Find emails with 'urgent' in the subject line"
+- "Show me all unread emails from my inbox"
+- "List emails from amazon.com in the last month"
+
+**Mailbox Analysis:**
+- "What folders do I have in my account?"
+- "How many emails are in my Drafts folder?"
+- "Show me the most recent emails in my Sent folder"
+
+**Advanced Filtering:**
+- "Find emails from my boss between December 1-15"
+- "Show me emails containing the word 'meeting' from this week"
+- "List all emails I haven't read yet"
+- "Find emails marked as important or flagged"
+
+### Mode Selection Tips
+
+- **Use Basic Mode** for quick questions about your summary
+- **Use Enhanced Mode** when you need to search specific emails or folders
+- Enhanced Mode automatically activates if no summary data is available
+- Toggle between modes anytime during your chat session
 
 ## Troubleshooting
 

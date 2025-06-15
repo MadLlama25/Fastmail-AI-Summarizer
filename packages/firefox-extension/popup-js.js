@@ -43,8 +43,16 @@ class EmailSummarizerUI {
     this.closeConfigBtn = document.getElementById('closeConfigBtn');
     this.connectionStatus = document.getElementById('connectionStatus');
     
+    // Chat elements
+    this.chatSection = document.getElementById('chatSection');
+    this.chatMessages = document.getElementById('chatMessages');
+    this.chatInput = document.getElementById('chatInput');
+    this.sendChatBtn = document.getElementById('sendChatBtn');
+    this.enhancedModeToggle = document.getElementById('enhancedModeToggle');
+    
     // Mailbox storage
     this.mailboxes = [];
+    this.currentEmailData = null;
   }
 
   async loadSavedConfig() {
@@ -130,6 +138,15 @@ class EmailSummarizerUI {
     
     // Handle folder selection changes
     this.allFoldersCheckbox.addEventListener('change', () => this.handleAllFoldersChange());
+    
+    // Chat functionality event listeners
+    this.sendChatBtn.addEventListener('click', () => this.sendChatMessage());
+    this.chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        this.sendChatMessage();
+      }
+    });
   }
 
   showStatus(message, type = 'info') {
@@ -271,6 +288,9 @@ class EmailSummarizerUI {
       });
 
       if (response.success) {
+        // Store email data for chat functionality
+        this.currentEmailData = response.emailData;
+        
         // Display summary in enhanced popup format
         this.displayEnhancedSummary(response.summary);
         this.showStatus('Emails summarized successfully!', 'success');
@@ -318,8 +338,13 @@ class EmailSummarizerUI {
       </div>
     `;
     
-    // Show the summary container
+    // Show the summary container and chat section
     this.summaryContainer.classList.remove('hidden');
+    this.chatSection.classList.remove('hidden');
+    
+    // Clear any existing chat messages and add welcome message
+    this.chatMessages.innerHTML = '';
+    this.addChatMessage(`👋 Hi! I've analyzed ${emailCount} of your emails. Feel free to ask me questions about them! Toggle "Enhanced Mode" to search your entire mailbox.`, 'assistant');
     
     // Add action buttons if they don't exist
     this.addActionButtons();
@@ -647,6 +672,84 @@ class EmailSummarizerUI {
     } else {
       this.folderSummary.textContent = `${selectedIds.length} folders selected`;
     }
+  }
+
+  async sendChatMessage() {
+    const message = this.chatInput.value.trim();
+    
+    if (!message) return;
+    
+    const isEnhancedMode = this.enhancedModeToggle.checked;
+    
+    // Check if we have email data for basic mode
+    if (!isEnhancedMode && (!this.currentEmailData || this.currentEmailData.length === 0)) {
+      this.addChatMessage('❌ No email data available. Please generate a summary first or enable Enhanced Mode to search your mailbox.', 'assistant');
+      return;
+    }
+    
+    // Clear input and disable
+    this.chatInput.value = '';
+    this.chatInput.disabled = true;
+    this.sendChatBtn.disabled = true;
+    
+    // Add user message to chat
+    this.addChatMessage(message, 'user');
+    
+    // Show loading indicator with mode indication
+    const modeText = isEnhancedMode ? 'Searching your mailbox' : 'Analyzing summary data';
+    const loadingElement = this.addChatMessage(`🤖 ${modeText}<span class="chat-loading-dots"></span>`, 'assistant', true);
+    
+    try {
+      // Send message to background script with enhanced mode flag
+      const response = await this.sendMessageToBackground('chatWithAI', {
+        message: message,
+        emailData: this.currentEmailData,
+        useEnhancedMode: isEnhancedMode
+      });
+      
+      // Remove loading indicator
+      loadingElement.remove();
+      
+      if (response.success) {
+        this.addChatMessage(response.response, 'assistant');
+      } else {
+        this.addChatMessage('❌ Sorry, I encountered an error: ' + response.error, 'assistant');
+      }
+    } catch (error) {
+      loadingElement.remove();
+      this.addChatMessage('❌ Failed to get response: ' + error.message, 'assistant');
+    } finally {
+      // Re-enable input
+      this.chatInput.disabled = false;
+      this.sendChatBtn.disabled = false;
+      this.chatInput.focus();
+    }
+  }
+
+  addChatMessage(message, sender, isLoading = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}`;
+    
+    if (isLoading) {
+      messageDiv.innerHTML = `<div class="chat-loading">${message}</div>`;
+    } else {
+      const timestamp = new Date().toLocaleTimeString();
+      messageDiv.innerHTML = `
+        <div>${this.escapeHtml(message)}</div>
+        <div class="timestamp">${timestamp}</div>
+      `;
+    }
+    
+    this.chatMessages.appendChild(messageDiv);
+    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+    
+    return messageDiv;
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   async sendMessageToBackground(action, data = {}) {

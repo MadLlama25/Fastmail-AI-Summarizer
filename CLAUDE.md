@@ -76,7 +76,8 @@ cd packages/firefox-extension && npm run package
 ### Message Passing Architecture
 - **Chrome**: `chrome.runtime.sendMessage()` to Service Worker
 - **Firefox**: `browser.runtime.sendMessage()` to background script  
-- Four main actions: `authenticate`, `setApiToken`, `getMailboxes`, `summarizeEmails`
+- Five main actions: `authenticate`, `setApiToken`, `getMailboxes`, `summarizeEmails`, `chatWithAI`
+- **Enhanced Chat**: `chatWithAI` supports both basic mode (summary data) and enhanced mode (real-time Fastmail API access)
 - All API tokens passed as encrypted strings between popup and background contexts
 
 ### Authentication & API Flow
@@ -87,6 +88,7 @@ cd packages/firefox-extension && npm run package
 5. `getMailboxes()` fetches available folders for selection
 6. `getRecentEmails()` fetches with `fetchTextBodyValues: true` and optional folder filtering
 7. `ClaudeAPI.summarizeEmails()` processes via Claude 3.5 Haiku with priority email highlighting
+8. **Enhanced Chat**: `ClaudeAPI.chatWithFastmailAPI()` uses function calling for real-time email search and analysis
 
 ### UI Architecture & State Management
 - **Primary Interface**: Large summarize button disabled until authentication complete
@@ -97,6 +99,11 @@ cd packages/firefox-extension && npm run package
 - **Progressive Disclosure**: Settings appear only when needed, auto-close after successful auth
 - **Connection Status**: Real-time visual indicators (red/green dots) showing Fastmail connectivity
 - **Summary Display**: Animated presentation with metadata, action buttons (copy, print, text size)
+- **Enhanced Chat Interface**: Dual-mode chat system with Basic/Enhanced mode toggle
+  - **Basic Mode**: Chat about summarized emails using stored `currentEmailData`
+  - **Enhanced Mode**: Real-time Fastmail API integration with Claude function calling
+  - **Mode Toggle**: Checkbox to switch between modes, auto-enables Enhanced Mode if no summary data available
+- **Interactive Chat**: Chat interface below summary for asking questions about emails
 
 ## Critical Implementation Details
 
@@ -148,6 +155,16 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
 - Formats email data as structured text with subject, sender, date, body content
 - Strips HTML tags from HTML bodies for plain text summarization
 
+### Enhanced Chat with Function Calling
+- **Claude Function Calling**: Uses Claude's tools API for real-time email interaction
+- **Available Functions**:
+  - `search_emails`: Search by sender, subject, date range, keywords, JMAP keywords, or mailbox
+  - `get_mailboxes`: List all available mailboxes/folders with metadata
+  - `get_email_details`: Get full details of specific emails by ID array
+- **Function Implementation**: Each function uses FastmailJMAP methods (`searchEmails`, `getMailboxes`, `getEmailsByIds`)
+- **Error Handling**: Comprehensive error handling for API failures, authentication issues, and malformed data
+- **Response Processing**: Iterative function calling with tool results fed back to Claude for contextual responses
+
 ### Browser API Compatibility Layer
 - **Chrome**: `chrome.storage.local`, `chrome.runtime`, Service Worker context
 - **Firefox**: `browser.storage.local`, `browser.runtime`, traditional background script
@@ -190,7 +207,13 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
 8. Test error handling: empty mailbox accounts, invalid folder IDs, malformed email dates
 9. Verify summary display with metadata and action buttons (uses secure HTML sanitization for XSS protection while preserving formatting)
 10. Test error states: missing tokens, invalid tokens, API failures, folder loading failures
-11. **IMPORTANT**: Test with fresh tokens - legacy base64 tokens will require re-entry
+11. **Enhanced Chat Testing**:
+    - Test Basic Mode: Generate summary, then chat about summarized emails
+    - Test Enhanced Mode: Toggle enhanced mode and search entire mailbox
+    - Test mode switching: Verify toggle between Basic and Enhanced modes works correctly
+    - Test function calling: Verify Claude can search emails, get mailboxes, and retrieve email details
+    - Test error handling: Invalid searches, malformed queries, API failures
+12. **IMPORTANT**: Test with fresh tokens - legacy base64 tokens will require re-entry
 
 ### Common Development Issues
 - **Firefox**: Ensure using `browser.*` APIs, not `chrome.*`
@@ -204,3 +227,7 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
 - **Error Handling**: Extension gracefully handles empty mailboxes, invalid dates, and malformed data
 - **User Feedback**: UI shows "Unable to load folders" or "No folders available" for error states
 - **Legacy Tokens**: Users upgrading will need to re-enter API tokens (security improvement)
+- **Enhanced Chat Mode**: Ensure `useEnhancedMode` parameter is correctly passed to background scripts
+- **Function Calling**: Verify Claude function definitions match FastmailJMAP method signatures
+- **Chat Mode Toggle**: Test that Enhanced Mode checkbox state is properly read and handled
+- **API Rate Limits**: Enhanced Mode may trigger more JMAP API calls - handle rate limiting gracefully
