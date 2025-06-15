@@ -198,7 +198,7 @@ const priorityFlag = isPriority ? '[PRIORITY] ' : '';
 - **Multi-Folder Selection**: Checkbox event handling requires proper propagation and state management
 - **Hierarchy Building**: Parent/child relationships must handle missing parents gracefully
 - **JMAP OR Filtering**: Multiple mailbox filtering uses OR operator with conditions array
-- **Security**: Use proper HTML sanitization for user content display - escapes HTML then applies safe formatting
+- **Security**: Use `sanitizeHtml()` method for user content display - escapes HTML then applies safe formatting
 - **Encryption**: Extension ID fallbacks required for both `chrome.runtime.id` and `browser.runtime.id`
 - **Permissions**: Manifest V2 vs V3 permission format differences
 - **Error Handling**: Extension gracefully handles empty mailboxes, invalid dates, and malformed data

@@ -35,13 +35,13 @@ class FastmailJMAP {
       // });
       
       // For testing: Use direct API token from storage
-      const { fastmailApiToken } = await chrome.storage.local.get(['fastmailApiToken']);
-      if (!fastmailApiToken) {
+      const result = await chrome.storage.local.get(['fastmailApiToken']);
+      if (!result.fastmailApiToken) {
         throw new Error('No Fastmail API token found. Please set your API token.');
       }
       
       // Decrypt the stored token
-      this.accessToken = await decodeToken(fastmailApiToken);
+      this.accessToken = await decodeToken(result.fastmailApiToken);
       await this.establishSession();
       return true;
     } catch (error) {

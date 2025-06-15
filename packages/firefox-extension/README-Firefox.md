@@ -15,7 +15,7 @@ Firefox version of the Fastmail Email Summarizer with multi-folder selection, hi
 ## Installation
 1. Open `about:debugging` in Firefox
 2. Click "This Firefox" → "Load Temporary Add-on"
-3. Select `Firefox/manifest.json` from the repository
+3. Select `packages/firefox-extension/manifest.json` from the repository
 4. Configure API tokens via ⚙️ settings (same as Chrome version)
 
 **Usage**: Identical to Chrome version - select multiple folders with checkboxes, view hierarchical folder structure, choose email count, and summarize!
